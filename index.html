@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>امزون فون</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="splash-screen">
+        <div class="splash-content">
+            <i class="fa-solid fa-store splash-icon"></i>
+            <h1 class="splash-title">امزون فون</h1>
+            <div class="loader"></div>
+        </div>
+    </div>
+
+    <header>
+        <div class="header-right">
+            <h2>امزون فون</h2>
+        </div>
+        <div class="header-left">
+            <button id="theme-toggle" class="icon-btn" onclick="toggleTheme()"><i class="fa-solid fa-moon"></i></button>
+            <div class="cart-icon" onclick="openModal('cart-modal')">
+                <i class="fa-solid fa-cart-shopping"></i>
+                <span id="cart-count">0</span>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section id="tab-products" class="tab-content">
+            <div class="banner-container">
+                <div class="banner-track" id="banner-track">
+                    <img src="https://images.unsplash.com/photo-1601784551446-20c9e07cd562?w=800&q=80" alt="إعلان 1">
+                    <img src="https://images.unsplash.com/photo-1556656793-08538906a9f8?w=800&q=80" alt="إعلان 2">
+                    <img src="https://images.unsplash.com/photo-1523206489230-c012c64b2b48?w=800&q=80" alt="إعلان 3">
+                </div>
+            </div>
+
+            <div class="categories-wrapper" id="categories-wrapper">
+                </div>
+
+            <div class="products-grid" id="products-grid">
+                </div>
+        </section>
+
+        <section id="tab-offers" class="tab-content active">
+            <div class="offer-header">
+                <h3>🔥 5 في 15 الف 🔥</h3>
+                <p>عرض لفترة محدودة</p>
+                <div class="offer-msg" id="offer-msg">اختر 5 فقط</div>
+            </div>
+            <div class="offers-list" id="offers-list">
+                </div>
+            <button id="confirm-offer-btn" class="btn-primary" style="display: none;" onclick="openCheckout('offer')">تأكيد الطلب</button>
+        </section>
+
+        <section id="tab-profile" class="tab-content">
+            <div class="profile-card" id="profile-view-mode">
+                <button class="edit-pen-btn" onclick="toggleProfileEdit()"><i class="fa-solid fa-pen"></i></button>
+                <div class="avatar"><i class="fa-solid fa-user"></i></div>
+                <h3 id="display-name">الضيف الكريم</h3>
+                <div class="profile-info">
+                    <p><i class="fa-solid fa-phone"></i> الرقم: <span id="display-phone">غير مسجل</span></p>
+                    <p><i class="fa-solid fa-location-dot"></i> العنوان: <span id="display-address">غير مسجل</span></p>
+                </div>
+            </div>
+
+            <div class="profile-card" id="profile-edit-mode" style="display: none;">
+                <button class="edit-pen-btn" onclick="toggleProfileEdit()"><i class="fa-solid fa-xmark"></i></button>
+                <div class="avatar"><i class="fa-solid fa-user-pen"></i></div>
+                <div class="form-group" style="margin-top: 15px;">
+                    <input type="text" id="edit-name" placeholder="الاسم الكامل">
+                </div>
+                <div class="form-group">
+                    <input type="tel" id="edit-phone" placeholder="رقم الهاتف">
+                </div>
+                <div class="form-group">
+                    <input type="text" id="edit-address" placeholder="العنوان التفصيلي">
+                </div>
+                <button class="btn-primary" onclick="saveProfile()">حفظ البيانات</button>
+            </div>
+            
+            <div class="profile-menu">
+                <div class="menu-item" onclick="toggleTheme()">
+                    <i class="fa-solid fa-circle-half-stroke"></i>
+                    <span>الوضع الليلي / النهاري</span>
+                </div>
+                <a href="https://wa.me/9647773821407" class="menu-item whatsapp" target="_blank">
+                    <i class="fa-brands fa-whatsapp"></i>
+                    <span>تواصل مع خدمة العملاء</span>
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <nav class="bottom-nav">
+        <div class="nav-item" onclick="switchTab('products', this)">
+            <i class="fa-solid fa-mobile-screen"></i>
+            <span>المنتجات</span>
+        </div>
+        <div class="nav-item center-nav active" onclick="switchTab('offers', this)">
+            <div class="circle-btn">
+                <i class="fa-solid fa-gift"></i>
+            </div>
+            <span>العروض</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('profile', this)">
+            <i class="fa-solid fa-user"></i>
+            <span>البروفايل</span>
+        </div>
+    </nav>
+
+    <div id="product-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('product-modal')"><i class="fa-solid fa-xmark"></i></span>
+            <div class="modal-img-container">
+                <img id="modal-img" src="" alt="المنتج">
+            </div>
+            <h2 id="modal-title"></h2>
+            <p class="modal-price" id="modal-price"></p>
+            <p class="modal-desc">منتج أصلي وعالي الجودة، متوفر الآن في متجر امزون فون بأفضل الأسعار. يتميز بأداء متفوق وتصميم أنيق.</p>
+            <button class="btn-primary" id="modal-add-btn">إضافة للسلة <i class="fa-solid fa-cart-plus"></i></button>
+            
+            <h4 class="related-title">منتجات من نفس القسم</h4>
+            <div class="related-products" id="related-products">
+                </div>
+        </div>
+    </div>
+
+    <div id="cart-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('cart-modal')"><i class="fa-solid fa-xmark"></i></span>
+            <h2>سلة المشتريات</h2>
+            <div class="cart-items" id="cart-items">
+                </div>
+            <div class="cart-footer">
+                <h3>المجموع: <span id="cart-total">0</span> د.ع</h3>
+                <button class="btn-primary" id="cart-checkout-btn" onclick="openCheckout('cart')">تأكيد الطلب</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="checkout-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('checkout-modal')"><i class="fa-solid fa-xmark"></i></span>
+            <h2>معلومات التوصيل</h2>
+            <div class="form-group">
+                <input type="text" id="cust-name" placeholder="الاسم الكامل" required>
+            </div>
+            <div class="form-group">
+                <input type="tel" id="cust-phone" placeholder="رقم الهاتف" required>
+            </div>
+            <div class="form-group">
+                <input type="text" id="cust-address" placeholder="العنوان التفصيلي" required>
+            </div>
+            
+            <h3 class="payment-title">اختر طرق الدفع:</h3>
+            <div class="payment-options">
+                <label class="radio-label">
+                    <input type="radio" name="payment" value="cod" checked onchange="checkPaymentMethod()">
+                    <span>الدفع عند الاستلام <i class="fa-solid fa-hand-holding-dollar"></i></span>
+                </label>
+                <label class="radio-label">
+                    <input type="radio" name="payment" value="mastercard" onchange="checkPaymentMethod()">
+                    <span>الماستر كارد <i class="fa-brands fa-cc-mastercard"></i></span>
+                </label>
+            </div>
+            <div id="mastercard-alert" class="alert-box" style="display: none;">
+                <i class="fa-solid fa-triangle-exclamation"></i> تاكد من الرقم لان سوف يتواصل معك قسم المالية.
+            </div>
+            
+            <button class="btn-primary" onclick="submitOrder()">إرسال الطلب</button>
+        </div>
+    </div>
+
+    <div id="success-modal" class="modal">
+        <div class="modal-content success-content">
+            <i class="fa-solid fa-circle-check success-icon"></i>
+            <h2>تم الطلب بنجاح!</h2>
+            <p>شكرا لطلبكم وثقتكم من متجر امزون فون ❤️</p>
+            <button class="btn-primary" onclick="closeModal('success-modal')">العودة للرئيسية</button>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script type="module" src="script.js"></script>
+</body>
+</html>
