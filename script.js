@@ -26,6 +26,13 @@ let selectedOfferColors = {};
 let currentCheckoutSource = '';
 let currentUser = null;
 let isGuest = false;
+let deferredPrompt;
+
+// التقاط حدث التثبيت من المتصفح
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+});
 
 async function loadData() {
     try {
@@ -78,6 +85,18 @@ function checkInstallStatus() {
 }
 
 window.skipInstall = function() { localStorage.setItem('pwa_skipped', 'true'); closeModal('install-modal'); };
+
+// دالة التثبيت الجديدة
+window.installPWA = async function() {
+    closeModal('install-modal');
+    if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        deferredPrompt = null;
+    } else {
+        showToast("متصفحك لا يدعم التثبيت التلقائي، استخدم خيار 'إضافة للشاشة الرئيسية' من القائمة.", true);
+    }
+};
 
 window.switchTab = function(tabId, element) {
     document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
