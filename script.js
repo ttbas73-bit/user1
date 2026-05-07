@@ -1,3 +1,4 @@
+// مسار الملف: /public/user/script.js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -210,32 +211,103 @@ function renderOffers() {
     });
 }
 
-window.selectColor = function(e, el, id, color) {
+window.getTotalOfferItemsCount = function() {
+    let total = 0;
+    selectedOffers.forEach(id => {
+        const colors = selectedOfferColors[id] || [];
+        const offer = offersData.find(x => x.id === id);
+        if (offer && (!offer.colors || offer.colors.length === 0)) {
+            total += 1;
+        } else {
+            total += colors.length;
+        }
+    });
+    return total;
+};
+
+window.updateOfferStatus = function() {
+    const btn = document.getElementById('confirm-offer-btn');
+    const msg = document.getElementById('offer-msg');
+    const total = getTotalOfferItemsCount();
+    const remaining = 5 - total;
+    
+    if(total >= 5) { 
+        btn.style.display = 'block'; 
+        msg.innerText = "اكتمل العدد 5 بنجاح!"; 
+        msg.style.color="var(--success)"; 
+    } else { 
+        btn.style.display = 'none'; 
+        msg.innerText = `اختر 5 عناصر (الباقي ${remaining})`; 
+        msg.style.color="var(--text-sec)"; 
+    }
+};
+
+window.selectColor = function(e, colorEl, id, color) {
     e.stopPropagation();
     if(!selectedOfferColors[id]) selectedOfferColors[id] = [];
+    
     if(selectedOfferColors[id].includes(color)) {
         selectedOfferColors[id] = selectedOfferColors[id].filter(c => c !== color);
-        el.classList.remove('selected-color');
+        colorEl.classList.remove('selected-color');
+        
+        // Remove product selection if no colors left
+        if(selectedOfferColors[id].length === 0) {
+            selectedOffers = selectedOffers.filter(x => x !== id);
+            const offerEl = document.querySelector(`.offer-item[onclick*="${id}"]`);
+            if(offerEl) offerEl.classList.remove('selected');
+        }
     } else {
+        if(getTotalOfferItemsCount() >= 5) {
+            showToast("الحد الأقصى 5 عناصر فقط", true);
+            return;
+        }
         selectedOfferColors[id].push(color);
-        el.classList.add('selected-color');
+        colorEl.classList.add('selected-color');
+        
+        // Ensure product is selected
+        if(!selectedOffers.includes(id)) {
+            selectedOffers.push(id);
+            const offerEl = document.querySelector(`.offer-item[onclick*="${id}"]`);
+            if(offerEl) offerEl.classList.add('selected');
+        }
     }
+    updateOfferStatus();
 };
 
 window.toggleOfferSelection = function(id, el) {
     const colorsDiv = document.getElementById(`colors-${id}`);
-    if(selectedOffers.includes(id)) {
-        selectedOffers = selectedOffers.filter(x => x !== id);
-        el.classList.remove('selected'); colorsDiv.style.display = 'none';
-        delete selectedOfferColors[id];
+    const offer = offersData.find(x => x.id === id);
+    const hasColors = offer && offer.colors && offer.colors.length > 0;
+
+    if(!hasColors) {
+        if(selectedOffers.includes(id)) {
+            selectedOffers = selectedOffers.filter(x => x !== id);
+            el.classList.remove('selected');
+        } else {
+            if(getTotalOfferItemsCount() >= 5) { 
+                showToast("الحد الأقصى 5 عناصر فقط", true); return; 
+            }
+            selectedOffers.push(id); 
+            el.classList.add('selected');
+        }
     } else {
-        if(selectedOffers.length >= 5) { showToast("اختر 5 فقط", true); return; }
-        selectedOffers.push(id); el.classList.add('selected'); colorsDiv.style.display = 'block';
+        // Toggle colors section visibility only (if it has colors)
+        if(colorsDiv) {
+            if(colorsDiv.style.display === 'none' || colorsDiv.style.display === '') {
+                colorsDiv.style.display = 'block';
+            } else {
+                colorsDiv.style.display = 'none';
+                // If we also want to unselect all when collapsed, uncomment below:
+                /*
+                selectedOffers = selectedOffers.filter(x => x !== id);
+                el.classList.remove('selected');
+                delete selectedOfferColors[id];
+                colorsDiv.querySelectorAll('.color-badge').forEach(b => b.classList.remove('selected-color'));
+                */
+            }
+        }
     }
-    const btn = document.getElementById('confirm-offer-btn');
-    const msg = document.getElementById('offer-msg');
-    if(selectedOffers.length === 5) { btn.style.display = 'block'; msg.innerText = "اكتمل العدد!"; msg.style.color="var(--success)"; }
-    else { btn.style.display = 'none'; msg.innerText = `اختر 5 فقط (تم تحديد ${selectedOffers.length})`; msg.style.color="var(--text-sec)"; }
+    updateOfferStatus();
 };
 
 window.openCheckout = function(source) {
@@ -257,12 +329,19 @@ window.submitOrder = async function() {
 
     let itemsDetailed = []; let total = 0;
     if(currentCheckoutSource === 'cart') {
-        cart.forEach(i => { itemsDetailed.push({name: i.name, qty: i.qty, color: ""}); total += i.price * i.qty; });
+        cart.forEach(i => { itemsDetailed.push({name: i.name, qty: i.qty, color: "", img: i.img}); total += i.price * i.qty; });
     } else {
         total = 15000;
         selectedOffers.forEach(id => {
             const o = offersData.find(x => x.id === id);
-            itemsDetailed.push({name: o.name, qty: 1, color: selectedOfferColors[id] || []});
+            const colors = selectedOfferColors[id] || [];
+            if(o.colors && o.colors.length > 0) {
+                if(colors.length > 0) {
+                    itemsDetailed.push({name: o.name, qty: colors.length, color: colors, img: o.img});
+                }
+            } else {
+                itemsDetailed.push({name: o.name, qty: 1, color: [], img: o.img});
+            }
         });
     }
 
